@@ -60,32 +60,32 @@ static void Buzzer_Init(void)
 *****************************************************************/
 static void Buzzer_PwmInit(void)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
-  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-  TIM_OCInitTypeDef TIM_OCInitStructure;
+  GPIO_InitTypeDef        GPIO_InitStructure    = {0};
+  TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = {0};
+  TIM_OCInitTypeDef       TIM_OCInitStructure   = {0};
   
   RCC_AHB1PeriphClockCmd(BUZZER_RCC_AHB1Periph_GPIO, ENABLE);
   RCC_APB1PeriphClockCmd(BUZZER_RCC_APB1Periph_TIM, ENABLE);
   
-  GPIO_InitStructure.GPIO_Pin = BUZZER_GPIO_Pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_InitStructure.GPIO_Pin   = BUZZER_GPIO_Pin;
+  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
   GPIO_Init(BUZZER_GPIO, &GPIO_InitStructure);
   
   GPIO_PinAFConfig(BUZZER_GPIO, BUZZER_GPIO_PinSource, BUZZER_GPIO_AF_TIM);
   
-  TIM_TimeBaseStructure.TIM_Prescaler = BUZZER_TIM_Prescaler;
-  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-  TIM_TimeBaseStructure.TIM_Period = BUZZER_TIM_Period;
+  TIM_TimeBaseStructure.TIM_Prescaler     = BUZZER_TIM_Prescaler;
+  TIM_TimeBaseStructure.TIM_CounterMode   = TIM_CounterMode_Up;
+  TIM_TimeBaseStructure.TIM_Period        = BUZZER_TIM_Period;
   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
   TIM_TimeBaseInit(BUZZER_TIM, &TIM_TimeBaseStructure);
   
-  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+  TIM_OCInitStructure.TIM_OCMode      = TIM_OCMode_PWM1;
   TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-  TIM_OCInitStructure.TIM_Pulse = 0;
-  TIM_OCInitStructure.TIM_OCPolarity = BUZZER_TIM_OCPolarity;
+  TIM_OCInitStructure.TIM_Pulse       = 0;
+  TIM_OCInitStructure.TIM_OCPolarity  = BUZZER_TIM_OCPolarity;
   BUZZER_TIM_OCInit(BUZZER_TIM, &TIM_OCInitStructure);
   
   BUZZER_TIM_OCPreloadConfig(BUZZER_TIM, TIM_OCPreload_Enable);
@@ -104,12 +104,12 @@ static void Buzzer_PwmInit(void)
 *****************************************************************/
 static void Buzzer_NvicInit(void)
 {
-  NVIC_InitTypeDef NVIC_InitStructure;
+  NVIC_InitTypeDef NVIC_InitStructure = {0};
   
-  NVIC_InitStructure.NVIC_IRQChannel = BUZZER_TIM_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannel                   = BUZZER_TIM_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = BUZZER_TIM_IRQ_PreemptionPriority;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = BUZZER_TIM_IRQ_SubPriority;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority        = BUZZER_TIM_IRQ_SubPriority;
+  NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 }
 
