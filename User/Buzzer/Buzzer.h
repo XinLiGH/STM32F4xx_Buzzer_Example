@@ -52,10 +52,12 @@
 typedef enum
 {
   BuzzerStateOff     = 0,
-  BuzzerStateDrip    = 1,
-  BuzzerStateWarning = 2,
-  BuzzerStateDanger  = 3
-  
+  BuzzerStateRing    = 1,
+  BuzzerStateDrip    = 2,
+  BuzzerStateDidi    = 3,
+  BuzzerStateDidiDi  = 4,
+  BuzzerStateWarning = 5,
+  BuzzerStateDanger  = 6
 }BuzzerState;
 
 /****************************************************************

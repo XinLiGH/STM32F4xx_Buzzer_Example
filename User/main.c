@@ -40,9 +40,15 @@ int main(void)
     Delay_s(5);
     Buzzer_SetState(BuzzerStateDrip);
     Delay_s(5);
+    Buzzer_SetState(BuzzerStateDidi);
+    Delay_s(5);
+    Buzzer_SetState(BuzzerStateDidiDi);
+    Delay_s(5);
     Buzzer_SetState(BuzzerStateWarning);
     Delay_s(5);
     Buzzer_SetState(BuzzerStateDanger);
+    Delay_s(5);
+    Buzzer_SetState(BuzzerStateRing);
     Delay_s(5);
     Buzzer_SetState(BuzzerStateOff);
   }

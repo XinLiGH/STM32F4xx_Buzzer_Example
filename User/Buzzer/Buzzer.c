@@ -14,7 +14,8 @@
 /****************************************************************
  *                       Global variables
 *****************************************************************/
-static BuzzerState buzzerState = BuzzerStateOff;
+static __IO uint8_t     buzzerCount = 0;
+static __IO BuzzerState buzzerState = BuzzerStateOff;
 
 /****************************************************************
  *                     Function declaration
@@ -23,7 +24,10 @@ static void Buzzer_Init(void);
 static void Buzzer_PwmInit(void);
 static void Buzzer_NvicInit(void);
 static void Buzzer_Off(void);
+static void Buzzer_Ring(void);
 static void Buzzer_Drip(void);
+static void Buzzer_Didi(void);
+static void Buzzer_DidiDi(void);
 static void Buzzer_Warning(void);
 static void Buzzer_Danger(void);
 
@@ -130,6 +134,23 @@ static void Buzzer_Off(void)
 }
 
 /****************************************************************
+ * Function:    Buzzer_Ring
+ * Description: Buzzer ring.
+ * Input:
+ * Output:
+ * Return:
+*****************************************************************/
+static void Buzzer_Ring(void)
+{
+  Buzzer_Init();
+  
+  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2 - 1);
+  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2);
+  
+  buzzerState = BuzzerStateRing;
+}
+
+/****************************************************************
  * Function:    Buzzer_Drip
  * Description: Buzzer drip.
  * Input:
@@ -140,13 +161,56 @@ static void Buzzer_Drip(void)
 {
   Buzzer_Init();
   
-  TIM_SetAutoreload(BUZZER_TIM, BUZZER_TIM_Period);
-  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2);
+  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2 - 1);
+  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 4);
   
   TIM_ClearFlag(BUZZER_TIM, TIM_FLAG_Update);
   TIM_ITConfig(BUZZER_TIM, TIM_IT_Update, ENABLE);
   
+  buzzerCount = 0;
   buzzerState = BuzzerStateDrip;
+}
+
+/****************************************************************
+ * Function:    Buzzer_Didi
+ * Description: Buzzer didi.
+ * Input:
+ * Output:
+ * Return:
+*****************************************************************/
+static void Buzzer_Didi(void)
+{
+  Buzzer_Init();
+  
+  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 4 - 1);
+  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 8);
+  
+  TIM_ClearFlag(BUZZER_TIM, TIM_FLAG_Update);
+  TIM_ITConfig(BUZZER_TIM, TIM_IT_Update, ENABLE);
+  
+  buzzerCount = 1;
+  buzzerState = BuzzerStateDidi;
+}
+
+/****************************************************************
+ * Function:    Buzzer_DidiDi
+ * Description: Buzzer didi di.
+ * Input:
+ * Output:
+ * Return:
+*****************************************************************/
+static void Buzzer_DidiDi(void)
+{
+  Buzzer_Init();
+  
+  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 8 - 1);
+  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 16);
+  
+  TIM_ClearFlag(BUZZER_TIM, TIM_FLAG_Update);
+  TIM_ITConfig(BUZZER_TIM, TIM_IT_Update, ENABLE);
+  
+  buzzerCount = 2;
+  buzzerState = BuzzerStateDidiDi;
 }
 
 /****************************************************************
@@ -160,8 +224,8 @@ static void Buzzer_Warning(void)
 {
   Buzzer_Init();
   
-  TIM_SetAutoreload(BUZZER_TIM, BUZZER_TIM_Period);
-  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2);
+  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2 - 1);
+  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 4);
   
   buzzerState = BuzzerStateWarning;
 }
@@ -177,8 +241,8 @@ static void Buzzer_Danger(void)
 {
   Buzzer_Init();
   
-  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 2 - 1);
-  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 4);
+  TIM_SetAutoreload(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 4 - 1);
+  BUZZER_TIM_SetCompare(BUZZER_TIM, (BUZZER_TIM_Period + 1) / 8);
   
   buzzerState = BuzzerStateDanger;
 }
@@ -198,15 +262,27 @@ void Buzzer_SetState(BuzzerState state)
     {
       Buzzer_Off();
     }
+    else if(state == BuzzerStateRing)
+    {
+      Buzzer_Ring();
+    }
     else if(state == BuzzerStateDrip)
     {
       Buzzer_Drip();
+    }
+    else if(state == BuzzerStateDidi)
+    {
+      Buzzer_Didi();
+    }
+    else if(state == BuzzerStateDidiDi)
+    {
+      Buzzer_DidiDi();
     }
     else if(state == BuzzerStateWarning)
     {
       Buzzer_Warning();
     }
-    else
+    else if(state == BuzzerStateDanger)
     {
       Buzzer_Danger();
     }
@@ -238,8 +314,21 @@ void BUZZER_TIM_IRQHandler(void)
   {
     TIM_ClearITPendingBit(BUZZER_TIM, TIM_IT_Update);
     
-    TIM_ITConfig(BUZZER_TIM, TIM_IT_Update, DISABLE);
-    
-    Buzzer_Off();
+    if((buzzerState == BuzzerStateDrip) || (buzzerState == BuzzerStateDidi) || (buzzerState == BuzzerStateDidiDi))
+    {
+      if(buzzerCount > 0)
+      {
+        buzzerCount--;
+      }
+      else
+      {
+        TIM_ITConfig(BUZZER_TIM, TIM_IT_Update, DISABLE);
+        Buzzer_Off();
+      }
+    }
+    else
+    {
+      TIM_ITConfig(BUZZER_TIM, TIM_IT_Update, DISABLE);
+    }
   }
 }
